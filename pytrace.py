@@ -7,13 +7,17 @@ TMP_FILE='/tmp/pytrace-tmp.dat'
 
 def main(args):
     events = [('-e', x) for x in args.events]
-    cmdl = ['trace-cmd'] + events + ['-o', TMP_FILE]
+    events = [x for xs in events for x in xs]
+    cmdl = ['trace-cmd', 'record'] + events + ['-o', TMP_FILE]
 
-    with Popen(cmdl, stdout=PIPE, stderr=PIPE) as proc:
+    with Popen(cmdl, stdout=SP_PIPE) as proc:
+        input('[Recording] press ENTER to stop...')
+        proc.terminate()
         pass
-        
-    # with open(TMP_FILE, 'r') as fd:
-    #     pass
+    
+    with Popen(['trace-cmd', 'report', TMP_FILE], stdout=SP_PIPE) as proc:
+        print(proc.stdout.read())
+        pass
     pass
 
 if __name__ == '__main__':
