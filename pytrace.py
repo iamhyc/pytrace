@@ -3,7 +3,7 @@ import time, signal, threading, argparse
 import queue, threading
 from subprocess import Popen, PIPE as SP_PIPE
 
-TMP_FILE='./tmp-data-pytrace.dat'
+TMP_FILE='/tmp/data-pytrace.dat'
 
 def startThread(target, args=()):
     args = tuple(args)
@@ -54,11 +54,15 @@ def main(args):
             pass
         pass
 
-    if args.delta_flag:
-        with open(file_name+'.log.delta', 'w+') as fd:
+    with open(file_name+'.log', 'w+') as fd:
+        if args.output_flag:
+            [fd.write('%f\n'%x[2]) for x in result]
+            pass
+        elif args.delta_flag:
             for x in range(1, len(result)):
                 fd.write('%f %f\n'%(result[x-1][2], result[x][2]-result[x-1][2]))
-                # print( '%f %f'%(result[x-1][2], result[x][2]-result[x-1][2]) )
+            pass
+        else:
             pass
         pass
     
@@ -78,6 +82,8 @@ if __name__ == '__main__':
             help='execute process when recording begins.')
         parser.add_argument('--filter', dest='filter', type=str, default='',
             help='filter the captured events by info section.')
+        parser.add_argument('--output', dest='output_flag', action='store_true', default=False,
+            help='output the raw timestamp data.')
         parser.add_argument('--delta', dest='delta_flag', action='store_true', default=False,
             help='analyze delta time between events, and output.')
         parser.add_argument('--show', dest='show_flag', action='store_true', default=False,
