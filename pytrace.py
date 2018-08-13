@@ -1,11 +1,28 @@
 #!/usr/bin/python3
-import time, signal, argparse
+import time, signal, threading, argparse
 import queue, threading
 from subprocess import Popen, PIPE as SP_PIPE
 
 TMP_FILE='./tmp-data-pytrace.dat'
 
+def startThread(target, args=()):
+    args = tuple(args)
+    t = threading.Thread(target=target, args=args)
+    t.setDaemon(True)
+    t.start()
+    return t
+
+def execThread(proc_cmdl, q):
+    if not proc_cmdl: return
+    
+    with Popen(proc_cmdl.split(), stderr=SP_PIPE) as proc:
+        q.get() #block here
+        proc.terminate()
+        pass
+    pass
+
 def main(args):
+    q = queue.Queue()
     file_name = '+'.join(args.events)
     events = [('-e', x) for x in args.events]
     events = [x for xs in events for x in xs]
@@ -15,8 +32,12 @@ def main(args):
     with Popen(cmdl, stdout=SP_PIPE, stderr=SP_PIPE) as proc:
         print('Initializing, please wait...\n')
         time.sleep(2.5)
+
+        t = startThread(execThread, args=(args.exec_proc, q))
         input('[Recording] press ENTER to stop...\n')
         proc.send_signal(signal.SIGINT)
+        q.put_nowait('exit')
+
         print('Processing, please wait...')
         time.sleep(3.0)
         pass
@@ -53,6 +74,8 @@ if __name__ == '__main__':
             description='A customed python wrapper for trace-cmd.')
         parser.add_argument('events', nargs='+', type=str,
             help='events to be traced.')
+        parser.add_argument('--exec', dest='exec_proc', default='',
+            help='execute process when recording begins.')
         parser.add_argument('--filter', dest='filter', type=str, default='',
             help='filter the captured events by info section.')
         parser.add_argument('--delta', dest='delta_flag', action='store_true', default=False,
