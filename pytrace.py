@@ -21,7 +21,7 @@ def execThread(proc_cmdl, q):
         pass
     pass
 
-def main(args):
+def recordProcedure(args):
     q = queue.Queue()
     file_name = '+'.join(args.events)
     events = [('-e', x) for x in args.events]
@@ -42,10 +42,16 @@ def main(args):
         time.sleep(3.0)
         pass
     
+    pass
+
+def main(args):
+    if not args.strike_flag:
+        recordProcedure(args)
+
     with Popen(['trace-cmd', 'report', TMP_FILE], stdout=SP_PIPE) as proc:
         for line in proc.stdout.readlines():
             tmp = line.split(maxsplit=4)
-            if len(tmp) == 5 and (args.filter in tmp[4].decode()):
+            if len(tmp) == 5 and (args.filter in tmp[4].decode()): #TODO: impl. regex for filter
                 # print(tmp)
                 tmp[2] = float(tmp[2][:-1]) #get float timestamp
                 tmp[3] = tmp[3][:-1] # remove column
@@ -65,7 +71,7 @@ def main(args):
         else:
             pass
         pass
-    
+
     if args.show_flag:
         Popen(['kernelshark', '-i', TMP_FILE])
         return
@@ -82,6 +88,8 @@ if __name__ == '__main__':
             help='execute process when recording begins.')
         parser.add_argument('--filter', dest='filter', type=str, default='',
             help='filter the captured events by info section.')
+        parser.add_argument('--hehe', dest='strike_flag', action='store_true', default=False,
+            help='use the last recorded data.')
         parser.add_argument('--output', dest='output_flag', action='store_true', default=False,
             help='output the raw timestamp data.')
         parser.add_argument('--delta', dest='delta_flag', action='store_true', default=False,
