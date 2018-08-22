@@ -67,7 +67,7 @@ def main(args):
         pass
     
     if args.show_flag:
-        print('Not implement yet...')
+        Popen(['kernelshark', '-i', TMP_FILE])
         return
 
     pass
