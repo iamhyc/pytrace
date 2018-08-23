@@ -23,11 +23,9 @@ def execThread(proc_cmdl, q):
 
 def recordProcedure(args):
     q = queue.Queue()
-    file_name = '+'.join(args.events)
     events = [('-e', x) for x in args.events]
     events = [x for xs in events for x in xs]
     cmdl = ['trace-cmd', 'record'] + events + ['-s', '100', '-o', TMP_FILE]
-    result = list()
 
     with Popen(cmdl, stdout=SP_PIPE, stderr=SP_PIPE) as proc:
         print('Initializing, please wait...\n')
@@ -45,6 +43,9 @@ def recordProcedure(args):
     pass
 
 def main(args):
+    result = list()
+    file_name = '+'.join(args.events)
+
     if not args.strike_flag:
         recordProcedure(args)
 
