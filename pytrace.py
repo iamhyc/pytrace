@@ -28,15 +28,15 @@ def recordProcedure(args):
     cmdl = ['trace-cmd', 'record'] + events + ['-s', '100', '-o', TMP_FILE]
 
     with Popen(cmdl, stdout=SP_PIPE, stderr=SP_PIPE) as proc:
-        print('Initializing, please wait...\n')
+        print('============ Initializing, Please Wait ============\n')
         time.sleep(2.5)
 
         t = startThread(execThread, args=(args.exec_proc, q))
-        input('[Recording] press ENTER to stop...\n')
+        input('========= Recording, press ENTER to stop =========\n')
         proc.send_signal(signal.SIGINT)
         q.put_nowait('exit')
 
-        print('Processing, please wait...')
+        print('============= Processing, Please Wait =============')
         time.sleep(3.0)
         pass
     
@@ -52,8 +52,7 @@ def main(args):
     with Popen(['trace-cmd', 'report', TMP_FILE], stdout=SP_PIPE) as proc:
         for line in proc.stdout.readlines():
             tmp = line.split(maxsplit=4)
-            if len(tmp) == 5 and (args.filter in tmp[4].decode()): #TODO: impl. regex for filter
-                # print(tmp)
+            if len(tmp)==5 and (args.filter in tmp[4].decode()): #TODO: impl. regex for filter
                 tmp[2] = float(tmp[2][:-1]) #get float timestamp
                 tmp[3] = tmp[3][:-1] # remove column
                 result.append(tuple(tmp))
@@ -61,15 +60,17 @@ def main(args):
             pass
         pass
 
-    with open(file_name+'.log', 'w+') as fd:
-        if args.output_flag:
-            [fd.write('%f\n'%x[2]) for x in result]
-            pass
-        elif args.delta_flag:
-            for x in range(1, len(result)):
-                fd.write('%f %f\n'%(result[x-1][2], result[x][2]-result[x-1][2]))
-            pass
-        else:
+    if len(result) != 0:
+        with open(file_name+'.log', 'w+') as fd:
+            if args.output_flag:
+                [fd.write('%f\n'%x[2]) for x in result]
+                pass
+            elif args.delta_flag:
+                for x in range(1, len(result)):
+                    fd.write('%f %f\n'%(result[x-1][2], result[x][2]-result[x-1][2]))
+                pass
+            else:
+                pass
             pass
         pass
 
