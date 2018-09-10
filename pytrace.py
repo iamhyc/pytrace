@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import time, signal, threading, argparse
+import sys, time, signal, threading, argparse
 import queue, threading
 from subprocess import Popen, PIPE as SP_PIPE
 
@@ -29,15 +29,15 @@ def recordProcedure(args):
 
     with Popen(cmdl, stdout=SP_PIPE, stderr=SP_PIPE) as proc:
         print('============ Initializing, Please Wait ============\n')
-        time.sleep(2.5)
+        time.sleep(3.0)
 
         t = startThread(execThread, args=(args.exec_proc, q))
-        input('========= Recording, press ENTER to stop =========\n')
+        input('========== Recording, press ENTER to stop ==========\n')
         proc.send_signal(signal.SIGINT)
         q.put_nowait('exit')
 
-        print('============= Processing, Please Wait =============')
-        time.sleep(3.0)
+        print('============= Processing, Please Wait =============\n')
+        time.sleep(5.0)
         pass
     
     pass
@@ -54,7 +54,7 @@ def main(args):
             tmp = line.split(maxsplit=4)
             if len(tmp)==5 and (args.filter in tmp[4].decode()): #TODO: impl. regex for filter
                 tmp[2] = float(tmp[2][:-1]) #get float timestamp
-                tmp[3] = tmp[3][:-1] # remove column
+                tmp[3] = tmp[3][:-1] #remove column
                 result.append(tuple(tmp))
                 pass
             pass
@@ -69,7 +69,9 @@ def main(args):
                 for x in range(1, len(result)):
                     fd.write('%f %f\n'%(result[x-1][2], result[x][2]-result[x-1][2]))
                 pass
-            else:
+            else: #vomit on the console
+                [print('%s %s %.6f %s %s'%(
+                    x[0].decode(), x[1].decode(), x[2], x[3].decode(), x[4].decode())) for x in result]
                 pass
             pass
         pass
@@ -90,7 +92,7 @@ if __name__ == '__main__':
             help='execute process when recording begins.')
         parser.add_argument('--filter', dest='filter', type=str, default='',
             help='filter the captured events by info section.')
-        parser.add_argument('--hehe', dest='strike_flag', action='store_true', default=False,
+        parser.add_argument('--redo', dest='strike_flag', action='store_true', default=False,
             help='use the last recorded data.')
         parser.add_argument('--output', dest='output_flag', action='store_true', default=False,
             help='output the raw timestamp data.')
