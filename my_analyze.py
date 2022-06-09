@@ -39,13 +39,13 @@ energy_extract = re.compile("energy In A (\d+) B (\d+), and max \d+")
 ## `iwlwifi/pcie/tx.c`: iwl_mvm_tx_mpdu
 # "TX to [%d|%d] Q:%d - seq: 0x%x len %d"
 tx_begin_filter  = 'TX to ['
-tx_begin_extract = re.compile('TX to \[\d+\|\d+\] Q:6 - seq: (0x\S+) len (\d+)')
+tx_begin_extract = re.compile('TX to \[\d+\|\d+\] Q:5 - seq: (0x\S+) len (\d+)')
 #                                                            [ssn,       skb_len]
 
 ## `iwlwifi/queue/tx.c`: iwl_txq_reclaim
 # "[Q %d] %d -> %d (%d)"
 tx_end_filter    = ' -> '
-tx_end_extract   = re.compile('\[Q 6\] (\d+) -> (\d+) \(\d+\)')
+tx_end_extract   = re.compile('\[Q 5\] (\d+) -> (\d+) \(\d+\)')
 #                                      [s_idx,  t_idx]
 
 ## `iwlwifi/mvm/tx.c`: iwl_mvm_rx_tx_cmd -> iwl_mvm_rx_tx_cmd_single
@@ -57,7 +57,7 @@ tx_ack_extract = re.compile('\s*initial_rate 0x\S+ retries \d+, idx=(\d+) ssn=\d
 
 ## ================================================ ##
 RECORD_FLAG = True
-COMMAND     = 'iperf3 -c 10.42.0.1 -u -b 3M -t 300 --tos 127'
+COMMAND     = 'iperf3 -c 10.42.0.1 -u -b 3M -t 300 --tos 0'
 
 if RECORD_FLAG:
     records = pytrace_record(events=['iwlwifi_msg'],
