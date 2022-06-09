@@ -6,13 +6,13 @@ from pathlib import Path
 from termcolor import cprint
 
 TMP_FILE = '/tmp/pytrace-%s.dat'%( time.strftime('%Y%m%d-%H%M%S') )
-TRACE_SLOT_US = 500 #default as 1000us, i.e., 1ms.
+TRACE_SLOT_US = 500 #default as 1000us.
 
 SHELL_RUN  = lambda x: sp.run(x, stdout=sp.PIPE, stderr=sp.PIPE, check=True, shell=True)
 TRACE_ITEM = re.compile( '\s+(\S+)\s+\[(\d+)\] (\d+\.\d+):\s+(\S+):\s+(.+)' )
 #                            [task,    cpu,    timestamp,    event,   info]
 
-def record_events(events, exec_cmd=None):
+def _record_events(events, exec_cmd=None):
     events = [['-e', x] for x in events]
     events = sum(events,[]) #flatten
     trace_cmd = ['trace-cmd', 'record', '-s', str(TRACE_SLOT_US), '-o', TMP_FILE] + events
@@ -45,7 +45,7 @@ def record_events(events, exec_cmd=None):
     trace_proc.wait()
     return TMP_FILE
 
-def filter_events(trace_file, filters):
+def _filter_events(trace_file, filters):
     raw_records    = SHELL_RUN( f'trace-cmd report -i {trace_file}' ).stdout.decode()
     cooked_records = TRACE_ITEM.findall(raw_records)
 
@@ -56,33 +56,44 @@ def filter_events(trace_file, filters):
     for item in cooked_records:
         for name in filters:
             if name in item[-1]:
-                print(item)
                 results[name].append( item )
         pass
 
     return results
 
-def analyze(events):
-    pass
+def pytrace_parse_item(item):
+    return {
+        'task': item[0], 'cpu': int(item[1]),
+        'timestamp': float(item[2]),
+        'event': item[3], 'info': item[4]
+    }
+
+def pytrace_record(events, exec_cmd, filters):
+    _file = _record_events(events, exec_cmd)
+    records = _filter_events(_file, filters)
+    return records
+
+def pytrace_replay(trace_file=None, filters=None):
+    if trace_file:
+        _file = trace_file
+    else:
+        _all  = sorted( Path('/tmp').glob('pytrace-*.dat') )
+        _file = _all[-1] #the last trace file
+    ##
+    records = _filter_events(_file, filters)
+    return records
+
 
 def main(args):
     ## get trace file, w/ program executed at same time
     if args.command=='record':
-        _file = record_events(args.events, args.exec)
+        records = pytrace_record(args.events, args.exec, args.filters)
     elif args.command=='replay':
-        if args.trace_file:
-            _file = args.trace_file
-        else:
-            _all  = sorted( Path('/tmp').glob('pytrace-*.dat') )
-            _file = _all[-1] #the last trace file
+        records = pytrace_replay(args.trace_file, args.filters)
     else:
         return
 
-    ## filter the recorded events
-    events = filter_events(_file, args.filters)
-
-    ## customized analysis
-    analyze(events)
+    ##TODO: simple analysis tool
 
     pass
 
