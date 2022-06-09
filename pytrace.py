@@ -9,7 +9,7 @@ TMP_FILE = '/tmp/pytrace-%s.dat'%( time.strftime('%Y%m%d-%H%M%S') )
 TRACE_SLOT_US = 500 #default as 1000us.
 
 SHELL_RUN  = lambda x: sp.run(x, stdout=sp.PIPE, stderr=sp.PIPE, check=True, shell=True)
-TRACE_ITEM = re.compile( '\s+(\S+)\s+\[(\d+)\] (\d+\.\d+):\s+(\S+):\s+(.+)' )
+TRACE_ITEM = re.compile( '\s+(\S+)\s+\[(\d+)\]\s+(\d+\.\d+):\s+(\S+):\s+(.+)' )
 #                            [task,    cpu,    timestamp,    event,   info]
 
 def _record_events(events, exec_cmd=None):
