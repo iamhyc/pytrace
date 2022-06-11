@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import re
 import time
+import sys
 from itertools import chain
 import numba
 from numba import prange
@@ -57,6 +58,7 @@ tx_ack_extract = re.compile('\s*initial_rate 0x\S+ retries \d+, idx=(\d+) ssn=\d
 
 ## ================================================ ##
 RECORD_FLAG = True
+# COMMAND = sys.argv[1]
 COMMAND     = 'iperf3 -c 10.42.0.1 -u -b 3M -t 300 --tos 0'
 
 if RECORD_FLAG:
@@ -163,7 +165,7 @@ def tx_interval_analyze():
     acc_pkt_len = acc_pkt_len.cumsum()
     ## plot change of accumulated statistics
     # fig, ax = plt.subplots()
-    s_times,_ = zip(*tx_timeline)
+    # s_times,_ = zip(*tx_timeline)
     # ax.plot(s_times, acc_pkt_num, '-k')
     # # ax.set_ylim(0, 1.1*max(acc_pkt_num))
     # ax.set_ylabel('Number of Packets')
@@ -181,7 +183,7 @@ def tx_interval_analyze():
     # ax2.set_ylabel('Delay (ms)')
 
     #
-    fig, ax = plt.subplots()
+    # fig, ax = plt.subplots()
     _name = 'pytrace-%s'%( time.strftime('%Y%m%d-%H%M%S') )
     np.savez(f'logs/{_name}.npz', **{
         'avg_times': avg_times,
@@ -190,10 +192,10 @@ def tx_interval_analyze():
         'acc_pkt_len': acc_pkt_len,
         'tx_timeline': tx_timeline
     })
-    ax.plot( *get_cdf(avg_delay) )
-    ax.set_xlabel('Delay (ms)')
-    ax.set_ylabel('CDF')
-    plt.show()
+    # ax.plot( *get_cdf(avg_delay) )
+    # ax.set_xlabel('Delay (ms)')
+    # ax.set_ylabel('CDF')
+    # plt.show()
 
     # ## match the beginning of two records
     # print(len(tx_begin), len(tx_end))
