@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pathlib import Path
 import re
 import time
 import sys
@@ -40,13 +41,13 @@ energy_extract = re.compile("energy In A (\d+) B (\d+), and max \d+")
 ## `iwlwifi/pcie/tx.c`: iwl_mvm_tx_mpdu
 # "TX to [%d|%d] Q:%d - seq: 0x%x len %d"
 tx_begin_filter  = 'TX to ['
-tx_begin_extract = re.compile('TX to \[\d+\|\d+\] Q:5 - seq: (0x\S+) len (\d+)')
+tx_begin_extract = re.compile('TX to \[\d+\|\d+\] Q:\d+ - seq: (0x\S+) len (\d+)')
 #                                                            [ssn,       skb_len]
 
 ## `iwlwifi/queue/tx.c`: iwl_txq_reclaim
 # "[Q %d] %d -> %d (%d)"
 tx_end_filter    = ' -> '
-tx_end_extract   = re.compile('\[Q 5\] (\d+) -> (\d+) \(\d+\)')
+tx_end_extract   = re.compile('\[Q \d+\] (\d+) -> (\d+) \(\d+\)')
 #                                      [s_idx,  t_idx]
 
 ## `iwlwifi/mvm/tx.c`: iwl_mvm_rx_tx_cmd -> iwl_mvm_rx_tx_cmd_single
@@ -58,8 +59,9 @@ tx_ack_extract = re.compile('\s*initial_rate 0x\S+ retries \d+, idx=(\d+) ssn=\d
 
 ## ================================================ ##
 RECORD_FLAG = True
-# COMMAND = sys.argv[1]
-COMMAND     = 'iperf3 -c 10.42.0.1 -u -b 3M -t 300 --tos 0'
+COMMAND = sys.argv[1]
+FILENAME = sys.argv[2]
+# COMMAND     = 'iperf3 -c 10.42.0.1 -u -b 3M -t 300 --tos 0'
 
 if RECORD_FLAG:
     records = pytrace_record(events=['iwlwifi_msg'],
@@ -184,8 +186,9 @@ def tx_interval_analyze():
 
     #
     # fig, ax = plt.subplots()
-    _name = 'pytrace-%s'%( time.strftime('%Y%m%d-%H%M%S') )
-    np.savez(f'logs/{_name}.npz', **{
+    _name = FILENAME #'pytrace-%s'%( time.strftime('%Y%m%d-%H%M%S') )
+    _home = Path.home().as_posix()
+    np.savez(f'{_home}/pytrace/logs/{_name}.npz', **{
         'avg_times': avg_times,
         'avg_delay':avg_delay,
         'acc_pkt_num': acc_pkt_num,
