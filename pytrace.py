@@ -18,7 +18,7 @@ def _record_events(events, exec_cmd=None):
     trace_cmd = ['trace-cmd', 'record', '-s', str(TRACE_SLOT_US), '-o', TMP_FILE] + events
     if os.geteuid() != 0:
         trace_cmd = ['sudo'] + trace_cmd
-        SHELL_RUN('sudo echo')
+        SHELL_RUN('echo lablab | sudo -S echo')
 
     ## start trace-cmd and wait for initialized
     trace_proc = sp.Popen(trace_cmd, stdout=sp.PIPE, stderr=sp.PIPE)
@@ -71,6 +71,7 @@ def pytrace_parse_item(item):
 def pytrace_record(events, exec_cmd, filters):
     _file = _record_events(events, exec_cmd)
     records = _filter_events(_file, filters)
+    SHELL_RUN(f'sudo rm {_file}')
     return records
 
 def pytrace_replay(trace_file=None, filters=None):
