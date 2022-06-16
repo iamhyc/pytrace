@@ -1,6 +1,0 @@
-numpy
-matplotlib
-numba
-termcolor
-paramiko
-halo
