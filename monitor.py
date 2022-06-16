@@ -4,9 +4,9 @@ import subprocess as sp
 from datetime import datetime, time as TIME
 from time import sleep
 
-PROGRAM = './controller'
+PROGRAM = 'python3 ./controller.py'
 
-START_TIME = TIME(0, 00)
+START_TIME = TIME(0, 30)
 END_TIME   = TIME(8, 00)
 assert(END_TIME > START_TIME)
 
@@ -38,6 +38,10 @@ while True:
     sleep(60)
     ##
     if running_proc and running_proc.poll() is not None:
+        ret = running_proc.poll()
+        if ret==0:
+            print( _now )
+            exit()
         running_proc = None
         print('\nProgram abnormally exited.\n')
         sleep(30) #wait 30 seconds
